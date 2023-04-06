@@ -1,5 +1,12 @@
 .header {
   display: flex;
+  justify-content: space-evenly;
+  border: 1px solid lightgray;
+  position: sticky;
+  top: 0;
+  padding: 10px 0;
+  width: 100%;
+  z-index: 999;
 }
 
 .header__left {
@@ -24,4 +31,7 @@
   border: none;
   outline: none;
   background: none;
+}
+.header__right {
+  display: flex;
 }
