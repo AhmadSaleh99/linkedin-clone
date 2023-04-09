@@ -7,8 +7,19 @@ import HomeIcon from "@mui/icons-material/Home";
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import ChatIcon from "@mui/icons-material/Chat";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import { useDispatch, useSelector } from "react-redux";
+import { logout, selectUser } from "./features/userSlice";
+import { auth } from "./Firebase";
 
 const Header = () => {
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const logoutFromApp = () => {
+    dispatch(logout());
+
+    auth.signOut();
+  };
+
   return (
     <div className="header">
       <div className="header__left">
@@ -19,7 +30,7 @@ const Header = () => {
 
         <div className="header__search">
           <SearchIcon />
-          <input type="text" />
+          <input placeholder="Search" type="text" />
         </div>
       </div>
 
@@ -30,8 +41,9 @@ const Header = () => {
         <HeaderOptions Icon={ChatIcon} title="Messaging" />
         <HeaderOptions Icon={NotificationsIcon} title="Notifications" />
         <HeaderOptions
-          avatar="https://cdn.pixabay.com/photo/2015/03/03/08/55/portrait-657116__340.jpg"
-          title="Me"
+          avatar={user?.photoUrl ? user?.photoUrl : user?.displayName[0]}
+          title={user?.displayName}
+          onClick={logoutFromApp}
         />
       </div>
     </div>

@@ -8,34 +8,51 @@ import EventNoteIcon from "@mui/icons-material/EventNote";
 import CalendarViewDayIcon from "@mui/icons-material/CalendarViewDay";
 import Post from "./Post";
 import { db } from "./Firebase";
-import { addDoc, collection, onSnapshot } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+} from "firebase/firestore";
+import { useSelector } from "react-redux";
+import { selectUser } from "./features/userSlice";
+import FlipMove from "react-flip-move";
 
 const Feed = () => {
+  const user = useSelector(selectUser);
+
+  const [input, setInput] = useState("");
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "posts"), (snapshot) => {
-      setPosts(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          data: doc.data(),
-        }))
-      );
-    });
+    const unsubscribe = onSnapshot(
+      query(collection(db, "posts"), orderBy("timestamp", "desc")),
+      (snapshot) => {
+        setPosts(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            data: doc.data(),
+          }))
+        );
+      }
+    );
 
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
   const sendPost = async (e) => {
     e.preventDefault();
 
     try {
       await addDoc(collection(db, "posts"), {
-        name: "asdasda",
-        description: "asdasdasd",
-        message: "",
+        name: user.displayName,
+        description: user.email,
+        message: input,
+        photoURL: user.photoUrl || "",
+        timestamp: serverTimestamp(),
       });
+      setInput("");
     } catch (error) {
       console.error("Error adding new post: ", error);
     }
@@ -47,7 +64,11 @@ const Feed = () => {
         <div className="feed__input">
           <CreateIcon />
           <form>
-            <input type="text" />
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              type="text"
+            />
             <button onClick={sendPost} type="submit">
               Send
             </button>
@@ -68,13 +89,18 @@ const Feed = () => {
           />
         </div>
       </div>
-      {/* posts */}
-      {posts.map((post) => {})}
-      <Post
-        name="Ahmad Saleh"
-        description="This is a test"
-        message="it works"
-      />
+      <FlipMove>
+        {/* posts */}
+        {posts.map(({ id, data: { name, description, message, photoURL } }) => (
+          <Post
+            key={id}
+            name={name}
+            description={description}
+            message={message}
+            photoURL={photoURL}
+          />
+        ))}
+      </FlipMove>
     </div>
   );
 };
